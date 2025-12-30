@@ -26,6 +26,8 @@ BASE_MANUAL_DIR   = PHOTOWEB_DIR / "GT_RAS_PNG_RECORTE"
 BASE_SEMI_DIR     = PHOTOWEB_DIR / "MEJOR SEMIAUTOMATICO"
 BASE_AUTO_MASKS_DIR = PHOTOWEB_DIR / "PRUEBAAUTO - ROIM"
 ERRORMAPS_DIR_PATH  = PHOTOWEB_DIR / "FIGS_ERRORMAPS"
+Index  = PHOTOWEB_DIR / "Index"
+
 
 # Convert to strings for os.path compatibility
 BASE_ORIGINAL   = str(BASE_ORIGINAL_DIR)
@@ -33,6 +35,7 @@ BASE_MANUAL     = str(BASE_MANUAL_DIR)
 BASE_SEMI       = str(BASE_SEMI_DIR)
 BASE_AUTO_MASKS = str(BASE_AUTO_MASKS_DIR)
 ERRORMAPS_DIR   = str(ERRORMAPS_DIR_PATH)
+Index   = str(Index)
 
 # Optional folders (only if you add them)
 BASE_AUTO_PROBS = None
@@ -49,7 +52,7 @@ SCENE_IMG_PATH = str(SCENE_IMG_PATH) if SCENE_IMG_PATH.is_file() else None
 # ---------------------------------------------------------
 OVERVIEW_IMG_1 = os.path.join(BASE_ORIGINAL, "SCC_P4.png")
 OVERVIEW_IMG_2 = os.path.join(BASE_ORIGINAL, "ADC_P3.png")
-OVERVIEW_IMG_3 = SCENE_IMG_PATH  # can be None
+OVERVIEW_IMG_3 = os.path.join(Index, "2025-10-08-Scene.png")
 OVERVIEW_IMG_4 = os.path.join(BASE_SEMI, "ADC_P1.png")
 
 # Patients
