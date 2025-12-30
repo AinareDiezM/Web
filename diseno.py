@@ -512,7 +512,26 @@ elif section == "Patient exploration":
     show_auto = st.sidebar.checkbox("Show automatic segmentation (U-Net)", True)
 
     st.write(f"Selected case: **{patient}** – {tumour_type}")
-
+  st.markdown("""
+    <div style="
+        background-color: #f7f9fc;
+        border-left: 4px solid #003865;
+        padding: 0.8rem 1rem;
+        margin-top: 0.6rem;
+        margin-bottom: 1.2rem;
+        border-radius: 6px;
+        color: #3a4a58;
+        font-size: 15px;
+    ">
+    <strong>Section overview</strong><br>
+    In this section, the selected patient case can be explored in detail at slice level.
+    The user can visualise the original MRI image alongside manual, semi-automatic, and
+    automatic tumour segmentations, inspect simple radiomic descriptors computed per method,
+    and analyse segmentation differences. This view is intended to
+    support qualitative interpretation of tumour morphology and segmentation behaviour on an
+    individual-case basis.
+    </div>
+    """, unsafe_allow_html=True)
     slice_files = list_slices_for_patient(patient)
 
     if not slice_files:
