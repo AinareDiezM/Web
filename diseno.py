@@ -1,6 +1,5 @@
 # app.py
 import os
-import zipfile
 from pathlib import Path
 
 import streamlit as st
@@ -16,118 +15,32 @@ from io import BytesIO
 # CONFIG – REPO PATHS (NO LOCAL C:\...)
 # =========================================
 
-# Root of the repo = folder where this app.py lives
 REPO_ROOT = Path(__file__).resolve().parent
 
-# Your repo folder that contains the ZIPs
+# Folder in your repo that contains the datasets (NOT ZIP anymore)
 PHOTOWEB_DIR = REPO_ROOT / "Photoweb"
 
-# Where ZIPs will be extracted (works on Streamlit Cloud)
-EXTRACT_DIR = REPO_ROOT / "data_extracted"
-EXTRACT_DIR.mkdir(exist_ok=True)
+# Data folders inside Photoweb (direct PNGs inside)
+BASE_ORIGINAL_DIR = PHOTOWEB_DIR / "ORIGINAL"
+BASE_MANUAL_DIR   = PHOTOWEB_DIR / "GT_RAS_PNG_RECORTE"
+BASE_SEMI_DIR     = PHOTOWEB_DIR / "MEJOR SEMIAUTOMATICO"
+BASE_AUTO_MASKS_DIR = PHOTOWEB_DIR / "PRUEBAAUTO - ROIM"
+ERRORMAPS_DIR_PATH  = PHOTOWEB_DIR / "FIGS_ERRORMAPS"
 
-# Map logical keys -> zip filenames (as they are in your repo)
-ZIP_MAP = {
-    "ORIGINAL": "ORIGINAL.zip",
-    "GT_RAS_PNG_RECORTE": "GT_RAS_PNG_RECORTE.zip",
-    "MEJOR SEMIAUTOMATICO": "MEJOR SEMIAUTOMATICO.zip",
-    "PRUEBAAUTO - ROIM": "PRUEBAAUTO - ROIM.zip",
-    "FIGS_ERRORMAPS": "FIGS_ERRORMAPS.zip",
-    # Optional (only if you add these zips to the repo):
-    # "PRUEBAAUTO_PROBS": "PRUEBAAUTO_PROBS.zip",
-    # "PRUEBAAUTO - ROI": "PRUEBAAUTO - ROI.zip",
-    # "CODE": "CODE.zip",
-    # "lung_app_metrics": "lung_app_metrics.zip",
-    # "Index": "Index.zip",
-}
+# Convert to strings for os.path compatibility
+BASE_ORIGINAL   = str(BASE_ORIGINAL_DIR)
+BASE_MANUAL     = str(BASE_MANUAL_DIR)
+BASE_SEMI       = str(BASE_SEMI_DIR)
+BASE_AUTO_MASKS = str(BASE_AUTO_MASKS_DIR)
+ERRORMAPS_DIR   = str(ERRORMAPS_DIR_PATH)
 
-VALID_EXTS = (".png", ".jpg", ".jpeg")
-
-
-def _looks_like_image_folder(p: Path) -> bool:
-    if not p.is_dir():
-        return False
-    for ext in VALID_EXTS:
-        if any(p.rglob(f"*{ext}")):
-            return True
-    return False
-
-
-def ensure_unzipped(folder_key: str) -> Path:
-    target_dir = EXTRACT_DIR / folder_key
-
-    # If already extracted
-    if target_dir.exists() and any(target_dir.iterdir()):
-        subdirs = [p for p in target_dir.iterdir() if p.is_dir() and p.name != "__MACOSX"]
-        if len(subdirs) == 1:
-            return subdirs[0]
-        return target_dir
-
-    zip_name = ZIP_MAP.get(folder_key)
-    if zip_name is None:
-        raise FileNotFoundError(f"No ZIP mapping found for key: {folder_key}")
-
-    zip_path = PHOTOWEB_DIR / zip_name
-    if not zip_path.is_file():
-        raise FileNotFoundError(f"ZIP not found in repo: {zip_path}")
-
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    with zipfile.ZipFile(zip_path, "r") as zf:
-        zf.extractall(target_dir)
-
-    # Return inner folder if it exists (common zip layout)
-    subdirs = [p for p in target_dir.iterdir() if p.is_dir() and p.name != "__MACOSX"]
-    if len(subdirs) == 1:
-        return subdirs[0]
-
-    return target_dir
-
-
-    zip_name = ZIP_MAP.get(folder_key)
-    if zip_name is None:
-        raise FileNotFoundError(f"No ZIP mapping found for key: {folder_key}")
-
-    zip_path = PHOTOWEB_DIR / zip_name
-    if not zip_path.is_file():
-        raise FileNotFoundError(f"ZIP not found in repo: {zip_path}")
-
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    with zipfile.ZipFile(zip_path, "r") as zf:
-        zf.extractall(target_dir)
-
-    # Resolve nested folder case after extraction
-    if _looks_like_image_folder(target_dir) or any(target_dir.glob("*.npy")):
-        return target_dir
-
-    subdirs = [p for p in target_dir.iterdir() if p.is_dir()]
-    if len(subdirs) == 1:
-        return subdirs[0]
-
-    return target_dir
-
-st.sidebar.markdown("### DEBUG (paths)")
-st.sidebar.write("BASE_ORIGINAL =", BASE_ORIGINAL)
-st.sidebar.write("Exists? ", os.path.isdir(BASE_ORIGINAL))
-if os.path.isdir(BASE_ORIGINAL):
-    st.sidebar.write("Sample files:", sorted(os.listdir(BASE_ORIGINAL))[:10])
-    
-# Extracted folders (as strings for os.path.* compatibility)
-BASE_ORIGINAL = str(ensure_unzipped("ORIGINAL") / "ORIGINAL")
-BASE_MANUAL     = str(ensure_unzipped("GT_RAS_PNG_RECORTE") / "GT_RAS_PNG_RECORTE")
-BASE_SEMI       = str(ensure_unzipped("MEJOR SEMIAUTOMATICO") / "MEJOR SEMIAUTOMATICO")
-BASE_AUTO_MASKS = str(ensure_unzipped("PRUEBAAUTO - ROIM") / "PRUEBAAUTO - ROIM")
-ERRORMAPS_DIR   = str(ensure_unzipped("FIGS_ERRORMAPS") / "FIGS_ERRORMAPS")
-
-
-
-
-# Optional folders (only if you add zips)
+# Optional folders (only if you add them)
 BASE_AUTO_PROBS = None
 BASE_AUTO_ROI = None
 
-# Optional: if you add a standalone image (not in zip) under photoweb/
+VALID_EXTS = (".png", ".jpg", ".jpeg")
+
+# Optional: standalone image for landing page
 SCENE_IMG_PATH = PHOTOWEB_DIR / "2025-10-08-Scene.png"
 SCENE_IMG_PATH = str(SCENE_IMG_PATH) if SCENE_IMG_PATH.is_file() else None
 
@@ -136,32 +49,23 @@ SCENE_IMG_PATH = str(SCENE_IMG_PATH) if SCENE_IMG_PATH.is_file() else None
 # ---------------------------------------------------------
 OVERVIEW_IMG_1 = os.path.join(BASE_ORIGINAL, "SCC_P4.png")
 OVERVIEW_IMG_2 = os.path.join(BASE_ORIGINAL, "ADC_P3.png")
-OVERVIEW_IMG_3 = SCENE_IMG_PATH  # can be None if not in repo
+OVERVIEW_IMG_3 = SCENE_IMG_PATH  # can be None
 OVERVIEW_IMG_4 = os.path.join(BASE_SEMI, "ADC_P1.png")
 
-# Patients = file stems like ADC_P1, ADC_P2, ..., SCC_P5
+# Patients
 ADC_PATIENTS = [f"ADC_P{i}" for i in range(1, 6)]
 SCC_PATIENTS = [f"SCC_P{i}" for i in range(1, 6)]
 
 # =========================================
-# OPTIONAL: METRICS / CODE PATHS
-# (Will work only if you add these folders/zips to the repo)
+# OPTIONAL: METRICS / CODE PATHS (only if present in repo)
 # =========================================
 
-def resolve_optional_dir(folder_key: str, fallback_rel: str):
-    """
-    Prefer unzipped zip if present in ZIP_MAP, else prefer repo folder fallback_rel if exists, else return None.
-    """
-    if folder_key in ZIP_MAP:
-        try:
-            return str(ensure_unzipped(folder_key))
-        except Exception:
-            return None
+def resolve_optional_dir(fallback_rel: str):
     p = REPO_ROOT / fallback_rel
     return str(p) if p.is_dir() else None
 
-METRICS_DIR = resolve_optional_dir("lung_app_metrics", "lung_app_metrics")
-CODE_DIR = resolve_optional_dir("CODE", "CODE")
+METRICS_DIR = resolve_optional_dir("lung_app_metrics")
+CODE_DIR = resolve_optional_dir("CODE")
 
 MODEL_METRICS_FILES = {}
 if METRICS_DIR:
@@ -210,7 +114,6 @@ if CODE_DIR:
 # =========================================
 
 def load_image_safe(path: str) -> Image.Image:
-    """Load an image and convert 16-bit or unusual modes into something Streamlit can display."""
     img = Image.open(path)
     if img.mode == "I;16":
         img = img.point(lambda i: i * (1 / 256)).convert("L")
@@ -266,44 +169,28 @@ def compute_simple_descriptors(mask_img: Image.Image, base_gray_img: Image.Image
 
 @st.cache_data
 def list_slices_for_patient(patient: str):
+    """
+    List filenames for a patient in BASE_ORIGINAL.
+    Accepts both:
+      - ADC_P1_slice_001.png (starts with patient)
+      - ADC_P1.png (single file per patient)
+    """
     if not os.path.isdir(BASE_ORIGINAL):
         return []
-    slice_files = []
+
+    files = []
     for f in os.listdir(BASE_ORIGINAL):
         name, ext = os.path.splitext(f)
         if ext.lower() in VALID_EXTS and name.startswith(patient):
-            slice_files.append(f)
-    return sorted(slice_files)
+            files.append(f)
+
+    return sorted(files)
 
 def build_original_path(patient: str, slice_name: str) -> str:
     return os.path.join(BASE_ORIGINAL, slice_name)
 
 def build_manual_path(patient: str, slice_name: str) -> str:
     return os.path.join(BASE_MANUAL, slice_name)
-
-def build_difference_map(gt_mask_img: Image.Image, pred_mask_img: Image.Image):
-    gt_arr = np.array(gt_mask_img.convert("L"))
-    pred_arr = np.array(pred_mask_img.convert("L"))
-
-    if gt_arr.shape != pred_arr.shape:
-        pred_arr = np.array(
-            pred_mask_img.convert("L").resize((gt_arr.shape[1], gt_arr.shape[0]), Image.NEAREST)
-        )
-
-    gt_bin = gt_arr > 0
-    pred_bin = pred_arr > 0
-
-    tp = gt_bin & pred_bin
-    fp = (~gt_bin) & pred_bin
-    fn = gt_bin & (~pred_bin)
-
-    h, w = gt_bin.shape
-    diff_rgb = np.zeros((h, w, 3), dtype=np.uint8)
-    diff_rgb[fp] = [255, 0, 0]
-    diff_rgb[fn] = [0, 0, 255]
-    diff_rgb[tp] = [0, 255, 0]
-
-    return Image.fromarray(diff_rgb)
 
 def build_semi_path(patient: str, slice_name: str) -> str:
     return os.path.join(BASE_SEMI, slice_name)
@@ -337,6 +224,30 @@ def build_auto_roi_path(patient: str, slice_name: str):
     if not BASE_AUTO_ROI:
         return None
     return os.path.join(BASE_AUTO_ROI, slice_name)
+
+def build_difference_map(gt_mask_img: Image.Image, pred_mask_img: Image.Image):
+    gt_arr = np.array(gt_mask_img.convert("L"))
+    pred_arr = np.array(pred_mask_img.convert("L"))
+
+    if gt_arr.shape != pred_arr.shape:
+        pred_arr = np.array(
+            pred_mask_img.convert("L").resize((gt_arr.shape[1], gt_arr.shape[0]), Image.NEAREST)
+        )
+
+    gt_bin = gt_arr > 0
+    pred_bin = pred_arr > 0
+
+    tp = gt_bin & pred_bin
+    fp = (~gt_bin) & pred_bin
+    fn = gt_bin & (~pred_bin)
+
+    h, w = gt_bin.shape
+    diff_rgb = np.zeros((h, w, 3), dtype=np.uint8)
+    diff_rgb[fp] = [255, 0, 0]
+    diff_rgb[fn] = [0, 0, 255]
+    diff_rgb[tp] = [0, 255, 0]
+
+    return Image.fromarray(diff_rgb)
 
 def load_metrics_array(model_label: str, metric: str):
     files = MODEL_METRICS_FILES.get(model_label, {})
@@ -382,6 +293,7 @@ def compute_dice_iou(y_true, y_pred):
         iou = inter / (np.sum(yt) + np.sum(yp) - inter + 1e-7)
         dices.append(dice)
         ious.append(iou)
+
     return np.array(dices), np.array(ious)
 
 def pil_to_base64_png(pil_img: Image.Image) -> str:
@@ -625,30 +537,6 @@ elif section == "Patient exploration":
 
     st.write(f"Selected case: **{patient}** – {tumour_type}")
 
-    st.markdown(
-        """
-<div style="
-    background-color: #f7f9fc;
-    border-left: 4px solid #003865;
-    padding: 0.8rem 1rem;
-    margin-top: 0.6rem;
-    margin-bottom: 1.2rem;
-    border-radius: 6px;
-    color: #3a4a58;
-    font-size: 15px;
-">
-<strong>Section overview</strong><br>
-In this section, the selected patient case can be explored in detail at slice level.
-The user can visualise the original MRI image alongside manual, semi-automatic, and
-automatic tumour segmentations, inspect simple radiomic descriptors computed per method,
-and analyse segmentation differences. This view is intended to
-support qualitative interpretation of tumour morphology and segmentation behaviour on an
-individual-case basis.
-</div>
-""",
-        unsafe_allow_html=True
-    )
-
     slice_files = list_slices_for_patient(patient)
 
     if not slice_files:
@@ -668,7 +556,6 @@ individual-case basis.
         manual_path = build_manual_path(patient, slice_name)
         semi_path = build_semi_path(patient, slice_name)
         auto_mask_path = build_auto_mask_path(patient, slice_name)
-        auto_prob_path = build_auto_prob_path(patient, slice_name)
 
         st.markdown("### Original MRI")
 
@@ -753,27 +640,7 @@ individual-case basis.
                 })
 
         df = pd.DataFrame(data)
-
-        st.markdown(
-            """
-        **Radiomics descriptors (slice-level):**
-
-        - **Mean intensity (a.u.)**: Average MRI signal intensity within the segmented tumour region.
-        - **Tumour area (px)**: Number of pixels classified as tumour in the selected slice.
-        - **Perimeter (px)**: Approximate length of the tumour boundary, estimated using 4-connectivity.
-        - **Compactness (4πA/P²)**: Shape descriptor quantifying how close the tumour is to a circular geometry.
-        - **Centroid (row, col)**: Geometric centre of the segmented tumour region in image coordinates.
-        """
-        )
-
         st.dataframe(df, use_container_width=True, hide_index=True)
-
-        missing = []
-        if mask_gt_img is None: missing.append("Manual (GT)")
-        if mask_semi_img is None: missing.append("Semi-automatic")
-        if mask_auto_img is None: missing.append("Automatic (U-Net)")
-        if missing:
-            st.info("Missing masks for this slice: " + ", ".join(missing))
 
         st.markdown("---")
         st.subheader("GT vs U-Net differences (FP / FN / TP)")
@@ -802,12 +669,6 @@ individual-case basis.
                     <li><span style="color:blue; font-weight:600;">Blue</span>: False negatives</li>
                     <li><span style="color:green; font-weight:600;">Green</span>: True positives</li>
                 </ul>
-
-                <p style="font-size: 14.5px; color: #4a5a68; margin-top: 0.4rem; line-height: 1.45;">
-                <strong>Interpretation.</strong><br>
-                These maps compare the manual ground truth with semi-automatic and U-Net-based
-                segmentations at pixel level.
-                </p>
                 """,
                     unsafe_allow_html=True
                 )
@@ -822,7 +683,7 @@ elif section == "Model comparison":
     if not MODELS_7_9_10_13:
         st.warning(
             "Model comparison is disabled because CODE_DIR was not found in the repo.\n\n"
-            "To enable it, add a CODE folder or CODE.zip to your repository (and map it in ZIP_MAP)."
+            "To enable it, add a CODE folder to your repository."
         )
         st.stop()
 
@@ -897,9 +758,27 @@ elif section == "Model comparison":
 
     cfg = MODELS_7_9_10_13[selected_model]
 
-    # Load arrays
     Y_val = safe_load_npy(cfg["y_true"])
     preds_val = safe_load_npy(cfg["y_pred"])
+
+    def compute_dice_iou(y_true, y_pred):
+        if y_true.ndim == 4:
+            y_true = y_true[..., 0]
+        if y_pred.ndim == 4:
+            y_pred = y_pred[..., 0]
+
+        n = min(len(y_true), len(y_pred))
+        d = np.zeros(n, dtype=np.float32)
+        j = np.zeros(n, dtype=np.float32)
+
+        for i in range(n):
+            yt = (y_true[i] > 0).astype(np.uint8).ravel()
+            yp = (y_pred[i] > 0).astype(np.uint8).ravel()
+            inter = np.sum(yt * yp)
+            d[i] = (2.0 * inter) / (np.sum(yt) + np.sum(yp) + 1e-7)
+            j[i] = inter / (np.sum(yt) + np.sum(yp) - inter + 1e-7)
+
+        return d, j
 
     dice_arr, iou_arr = (None, None)
     if Y_val is not None and preds_val is not None:
@@ -911,16 +790,10 @@ elif section == "Model comparison":
             st.error("Metrics could not be loaded/computed. Check that CODE data exists in the repo.")
             st.write("Paths checked:", cfg)
         else:
-            dice_mean = float(np.mean(dice_arr))
-            dice_std = float(np.std(dice_arr))
-            iou_mean = float(np.mean(iou_arr))
-            iou_std = float(np.std(iou_arr))
-            n = int(min(len(dice_arr), len(iou_arr)))
-
             c1, c2, c3 = st.columns([1, 1, 1.2])
-            c1.metric("Dice (mean ± std)", f"{dice_mean:.3f} ± {dice_std:.3f}")
-            c2.metric("IoU  (mean ± std)", f"{iou_mean:.3f} ± {iou_std:.3f}")
-            c3.metric("Evaluated slices", f"{n}")
+            c1.metric("Dice (mean ± std)", f"{float(np.mean(dice_arr)):.3f} ± {float(np.std(dice_arr)):.3f}")
+            c2.metric("IoU  (mean ± std)", f"{float(np.mean(iou_arr)):.3f} ± {float(np.std(iou_arr)):.3f}")
+            c3.metric("Evaluated slices", f"{int(len(dice_arr))}")
 
     with tab2:
         st.subheader("Metric distributions")
@@ -952,10 +825,12 @@ elif section == "Model comparison":
             if Y_rank is None or P_rank is None:
                 rows.append({"Model": model_name, "Dice mean": None, "Dice std": None, "IoU mean": None, "IoU std": None, "N slices": None})
                 continue
+
             d_rank, i_rank = compute_metrics_from_arrays(Y_rank, P_rank)
             if d_rank is None or len(d_rank) == 0:
                 rows.append({"Model": model_name, "Dice mean": None, "Dice std": None, "IoU mean": None, "IoU std": None, "N slices": None})
                 continue
+
             rows.append({
                 "Model": model_name,
                 "Dice mean": round(float(d_rank.mean()), 4),
