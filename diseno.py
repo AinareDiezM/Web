@@ -693,6 +693,18 @@ elif section == "Patient exploration":
                         <li><span style="color:blue; font-weight:600;">Blue</span>: False negatives</li>
                         <li><span style="color:green; font-weight:600;">Green</span>: True positives</li>
                     </ul>
+                    <p style="
+                    font-size: 14.5px;
+                    color: #4a5a68;
+                    margin-top: 0.4rem;
+                    line-height: 1.45;
+                    ">
+                    <strong>Interpretation.</strong><br>
+                    These maps compare the manual ground truth with semi-automatic and U-Net-based
+                    segmentations at pixel level. Visual inspection allows identification of
+                    systematic error patterns and highlights whether the automatic model improves
+                    or exacerbates specific boundary mismatches observed in the semi-automatic method.
+                    </p>
                     """,
                     unsafe_allow_html=True
                 )
