@@ -354,14 +354,6 @@ st.sidebar.subheader("Navigation")
 section = st.sidebar.radio("Go to section:", ["Project overview", "Patient exploration", "Model comparison"])
 st.sidebar.markdown("---")
 
-# Optional debug (safe)
-with st.sidebar.expander("Debug paths"):
-    st.write("REPO_ROOT:", str(REPO_ROOT))
-    st.write("Metrics folder path:", str(REPO_ROOT / "Metrics"))
-    st.write("Metrics folder exists:", os.path.isdir(str(REPO_ROOT / "Metrics")))
-    if os.path.isdir(str(REPO_ROOT / "Metrics")):
-        st.write("Sample Metrics files:", sorted(os.listdir(str(REPO_ROOT / "Metrics")))[:15])
-
 # =========================================
 # SECTION: PROJECT OVERVIEW
 # =========================================
