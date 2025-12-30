@@ -12,7 +12,7 @@ import base64
 from io import BytesIO
 
 # =========================================
-# CONFIG – REPO PATHS (NO LOCAL C:\...)
+# CONFIG – REPO PATHS
 # =========================================
 
 REPO_ROOT = Path(__file__).resolve().parent
