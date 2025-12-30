@@ -115,6 +115,12 @@ BASE_SEMI       = str(ensure_unzipped("MEJOR SEMIAUTOMATICO") / "MEJOR SEMIAUTOM
 BASE_AUTO_MASKS = str(ensure_unzipped("PRUEBAAUTO - ROIM") / "PRUEBAAUTO - ROIM")
 ERRORMAPS_DIR   = str(ensure_unzipped("FIGS_ERRORMAPS") / "FIGS_ERRORMAPS")
 
+st.sidebar.markdown("### DEBUG (paths)")
+st.sidebar.write("BASE_ORIGINAL =", BASE_ORIGINAL)
+st.sidebar.write("Exists? ", os.path.isdir(BASE_ORIGINAL))
+if os.path.isdir(BASE_ORIGINAL):
+    st.sidebar.write("Sample files:", sorted(os.listdir(BASE_ORIGINAL))[:10])
+
 
 # Optional folders (only if you add zips)
 BASE_AUTO_PROBS = None
