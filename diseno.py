@@ -20,7 +20,7 @@ from io import BytesIO
 REPO_ROOT = Path(__file__).resolve().parent
 
 # Your repo folder that contains the ZIPs
-PHOTOWEB_DIR = REPO_ROOT / "photoweb"
+PHOTOWEB_DIR = REPO_ROOT / "Photoweb"
 
 # Where ZIPs will be extracted (works on Streamlit Cloud)
 EXTRACT_DIR = REPO_ROOT / "data_extracted"
