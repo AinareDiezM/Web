@@ -25,5 +25,4 @@ International internship at Bialystok University of Technology
 │   └── FIGS_ERRORMAPS/     # Error map visualisations
 │
 └── Metrics/               # Model evaluation data (.npy)
-    ├── Y_val_modelo*.npy
-    └── preds_val_modelo*.npy
+    
