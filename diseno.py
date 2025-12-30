@@ -512,7 +512,8 @@ elif section == "Patient exploration":
     show_auto = st.sidebar.checkbox("Show automatic segmentation (U-Net)", True)
 
     st.write(f"Selected case: **{patient}** – {tumour_type}")
-  st.markdown("""
+  st.markdown(
+      """
     <div style="
         background-color: #f7f9fc;
         border-left: 4px solid #003865;
@@ -532,6 +533,7 @@ elif section == "Patient exploration":
     individual-case basis.
     </div>
     """, unsafe_allow_html=True)
+
     slice_files = list_slices_for_patient(patient)
 
     if not slice_files:
