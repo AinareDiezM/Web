@@ -17,13 +17,13 @@ from io import BytesIO
 
 REPO_ROOT = Path(__file__).resolve().parent
 
-# Folder in your repo that contains the datasets
+# Folder in your repo that contains the datasets (NOT ZIP anymore)
 PHOTOWEB_DIR = REPO_ROOT / "Photoweb"
 
 # Data folders inside Photoweb (direct PNGs inside)
-BASE_ORIGINAL_DIR   = PHOTOWEB_DIR / "ORIGINAL"
-BASE_MANUAL_DIR     = PHOTOWEB_DIR / "GT_RAS_PNG_RECORTE"
-BASE_SEMI_DIR       = PHOTOWEB_DIR / "MEJOR SEMIAUTOMATICO"
+BASE_ORIGINAL_DIR = PHOTOWEB_DIR / "ORIGINAL"
+BASE_MANUAL_DIR   = PHOTOWEB_DIR / "GT_RAS_PNG_RECORTE"
+BASE_SEMI_DIR     = PHOTOWEB_DIR / "MEJOR SEMIAUTOMATICO"
 BASE_AUTO_MASKS_DIR = PHOTOWEB_DIR / "PRUEBAAUTO - ROIM"
 ERRORMAPS_DIR_PATH  = PHOTOWEB_DIR / "FIGS_ERRORMAPS"
 
@@ -34,7 +34,7 @@ BASE_SEMI       = str(BASE_SEMI_DIR)
 BASE_AUTO_MASKS = str(BASE_AUTO_MASKS_DIR)
 ERRORMAPS_DIR   = str(ERRORMAPS_DIR_PATH)
 
-# Optional folders
+# Optional folders (only if you add them)
 BASE_AUTO_PROBS = None
 BASE_AUTO_ROI = None
 
@@ -57,59 +57,35 @@ ADC_PATIENTS = [f"ADC_P{i}" for i in range(1, 6)]
 SCC_PATIENTS = [f"SCC_P{i}" for i in range(1, 6)]
 
 # =========================================
-# METRICS / MODEL COMPARISON PATHS
+# METRICS / MODEL COMPARISON (DIRECT)
 # =========================================
 
-def resolve_optional_dir_case_insensitive(*candidates: str):
-    """
-    Find a directory in REPO_ROOT matching any of the candidate names.
-    Works on Streamlit Cloud/Linux (case sensitive) and Windows (case insensitive).
-    Returns str path or None.
-    """
-    # 1) Direct check (fast path)
-    for name in candidates:
-        p = REPO_ROOT / name
-        if p.is_dir():
-            return str(p)
+# Metrics folder is exactly "Metrics" and is in repo root (same level as app.py)
+CODE_DIR = str(REPO_ROOT / "Metrics")
+if not os.path.isdir(CODE_DIR):
+    CODE_DIR = None
 
-    # 2) Case-insensitive search in repo root
-    try:
-        entries = [p for p in REPO_ROOT.iterdir() if p.is_dir()]
-        name_map = {p.name.lower(): p for p in entries}
-        for name in candidates:
-            hit = name_map.get(name.lower())
-            if hit and hit.is_dir():
-                return str(hit)
-    except Exception:
-        pass
-
-    return None
-
-# Your .npy folder is called Metrics in GitHub (but we also accept CODE/metrics)
-METRICS_NPY_DIR = resolve_optional_dir_case_insensitive("Metrics", "metrics", "CODE", "code")
-
-# Build the model config only if the folder exists
 MODELS_7_9_10_13 = {}
-if METRICS_NPY_DIR:
+if CODE_DIR:
     MODELS_7_9_10_13 = {
         "Model 7 – U-Net (BCE + Dice + Focal, thr=0.90 + post-processing)": {
-            "y_true": os.path.join(METRICS_NPY_DIR, "Y_val_modelo_bce_dice_focal.npy"),
-            "y_pred": os.path.join(METRICS_NPY_DIR, "preds_val_modelo_bce_dice_focal_bestthr_pp.npy"),
+            "y_true": os.path.join(CODE_DIR, "Y_val_modelo_bce_dice_focal.npy"),
+            "y_pred": os.path.join(CODE_DIR, "preds_val_modelo_bce_dice_focal_bestthr_pp.npy"),
             "threshold": None,
         },
         "Model 9 – Final U-Net (2-phase + oversampling, thr=0.90 + post-processing)": {
-            "y_true": os.path.join(METRICS_NPY_DIR, "Y_val_modelo9_bce_dice_focal.npy"),
-            "y_pred": os.path.join(METRICS_NPY_DIR, "preds_val_modelo9_bce_dice_focal_bestthr_pp.npy"),
+            "y_true": os.path.join(CODE_DIR, "Y_val_modelo9_bce_dice_focal.npy"),
+            "y_pred": os.path.join(CODE_DIR, "preds_val_modelo9_bce_dice_focal_bestthr_pp.npy"),
             "threshold": None,
         },
         "Model 10 – U-Net (CLAHE + regionprops, thr=0.90 + post-processing)": {
-            "y_true": os.path.join(METRICS_NPY_DIR, "Y_VAL_MODEL10.npy"),
-            "y_pred": os.path.join(METRICS_NPY_DIR, "PREDS_VAL_MODEL10_BEST_PP.npy"),
+            "y_true": os.path.join(CODE_DIR, "Y_VAL_MODEL10.npy"),
+            "y_pred": os.path.join(CODE_DIR, "PREDS_VAL_MODEL10_BEST_PP.npy"),
             "threshold": None,
         },
         "Model 13 – ResUNet (Focal Tversky, thr=0.90 + post-processing)": {
-            "y_true": os.path.join(METRICS_NPY_DIR, "Y_val_modelo13.npy"),
-            "y_pred": os.path.join(METRICS_NPY_DIR, "preds_val_modelo13_bestthr_pp.npy"),
+            "y_true": os.path.join(CODE_DIR, "Y_val_modelo13.npy"),
+            "y_pred": os.path.join(CODE_DIR, "preds_val_modelo13_bestthr_pp.npy"),
             "threshold": None,
         },
     }
@@ -174,13 +150,21 @@ def compute_simple_descriptors(mask_img: Image.Image, base_gray_img: Image.Image
 
 @st.cache_data
 def list_slices_for_patient(patient: str):
+    """
+    List filenames for a patient in BASE_ORIGINAL.
+    Accepts both:
+      - ADC_P1_slice_001.png (starts with patient)
+      - ADC_P1.png (single file per patient)
+    """
     if not os.path.isdir(BASE_ORIGINAL):
         return []
+
     files = []
     for f in os.listdir(BASE_ORIGINAL):
         name, ext = os.path.splitext(f)
         if ext.lower() in VALID_EXTS and name.startswith(patient):
             files.append(f)
+
     return sorted(files)
 
 def build_original_path(patient: str, slice_name: str) -> str:
@@ -211,6 +195,16 @@ def build_auto_mask_path(patient: str, slice_name: str):
             return os.path.join(BASE_AUTO_MASKS, fname)
 
     return None
+
+def build_auto_prob_path(patient: str, slice_name: str):
+    if not BASE_AUTO_PROBS:
+        return None
+    return os.path.join(BASE_AUTO_PROBS, slice_name)
+
+def build_auto_roi_path(patient: str, slice_name: str):
+    if not BASE_AUTO_ROI:
+        return None
+    return os.path.join(BASE_AUTO_ROI, slice_name)
 
 def build_difference_map(gt_mask_img: Image.Image, pred_mask_img: Image.Image):
     gt_arr = np.array(gt_mask_img.convert("L"))
@@ -360,13 +354,13 @@ st.sidebar.subheader("Navigation")
 section = st.sidebar.radio("Go to section:", ["Project overview", "Patient exploration", "Model comparison"])
 st.sidebar.markdown("---")
 
-# Optional: quick debug (safe)
+# Optional debug (safe)
 with st.sidebar.expander("Debug paths"):
     st.write("REPO_ROOT:", str(REPO_ROOT))
-    st.write("Photoweb exists:", PHOTOWEB_DIR.is_dir())
-    st.write("Metrics folder resolved:", METRICS_NPY_DIR)
-    if METRICS_NPY_DIR and os.path.isdir(METRICS_NPY_DIR):
-        st.write("Sample Metrics files:", sorted(os.listdir(METRICS_NPY_DIR))[:10])
+    st.write("Metrics folder path:", str(REPO_ROOT / "Metrics"))
+    st.write("Metrics folder exists:", os.path.isdir(str(REPO_ROOT / "Metrics")))
+    if os.path.isdir(str(REPO_ROOT / "Metrics")):
+        st.write("Sample Metrics files:", sorted(os.listdir(str(REPO_ROOT / "Metrics")))[:15])
 
 # =========================================
 # SECTION: PROJECT OVERVIEW
@@ -496,12 +490,28 @@ elif section == "Patient exploration":
         unsafe_allow_html=True
     )
 
+    st.markdown(
+        """
+        <div style="
+            width: 100%;
+            height: 8px;
+            margin-top: -10px;
+            margin-bottom: 18px;
+            background-color: #e9f2ff;
+            border-radius: 6px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     st.sidebar.subheader("Patient selection")
+
     tumour_type = st.sidebar.selectbox("Tumour type:", ["Adenocarcinoma (ADC)", "Squamous cell carcinoma (SCC)"])
     patient = st.sidebar.selectbox("Select patient:", ADC_PATIENTS if "Adenocarcinoma" in tumour_type else SCC_PATIENTS)
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Segmentation layers")
+
     show_gt = st.sidebar.checkbox("Show manual segmentation (ground truth)", True)
     show_semi = st.sidebar.checkbox("Show semi-automatic segmentation", True)
     show_auto = st.sidebar.checkbox("Show automatic segmentation (U-Net)", True)
@@ -529,11 +539,16 @@ elif section == "Patient exploration":
         auto_mask_path = build_auto_mask_path(patient, slice_name)
 
         st.markdown("### Original MRI")
+
         base_img = load_image_safe(orig_path)
         base_img_gray = base_img.convert("L")
-        st.image(base_img, use_container_width=True)
+
+        col_left, col_center, col_right = st.columns([1, 2, 1])
+        with col_center:
+            st.image(base_img, use_container_width=True)
 
         st.markdown("### Segmentation masks")
+
         mask_gt_img = load_image_safe(manual_path) if os.path.isfile(manual_path) else None
         mask_semi_img = load_image_safe(semi_path) if os.path.isfile(semi_path) else None
         mask_auto_img = load_image_safe(auto_mask_path) if (auto_mask_path and os.path.isfile(auto_mask_path)) else None
@@ -568,18 +583,76 @@ elif section == "Patient exploration":
                 st.info("Layer disabled.")
 
         st.markdown("---")
+        st.subheader("Radiomics preview per method")
+
+        def fmt(v, nd=1):
+            return "N/A" if (v is None or (isinstance(v, float) and np.isnan(v))) else round(float(v), nd)
+
+        def fmt_centroid(r, c):
+            if r is None or c is None or (isinstance(r, float) and np.isnan(r)) or (isinstance(c, float) and np.isnan(c)):
+                return "N/A"
+            return f"({r:.1f}, {c:.1f})"
+
+        data = []
+        d_gt = compute_simple_descriptors(mask_gt_img, base_img_gray) if mask_gt_img is not None else None
+        d_semi = compute_simple_descriptors(mask_semi_img, base_img_gray) if mask_semi_img is not None else None
+        d_auto = compute_simple_descriptors(mask_auto_img, base_img_gray) if mask_auto_img is not None else None
+
+        rows = [("Manual (GT)", d_gt), ("Semi-automatic", d_semi), ("Automatic (U-Net)", d_auto)]
+
+        for label, d in rows:
+            if d is None:
+                data.append({
+                    "Method": label,
+                    "Mean intensity (a.u.)": "N/A",
+                    "Tumour area (px)": "N/A",
+                    "Perimeter (px)": "N/A",
+                    "Compactness (4πA/P²)": "N/A",
+                    "Centroid (row, col)": "N/A",
+                })
+            else:
+                data.append({
+                    "Method": label,
+                    "Mean intensity (a.u.)": fmt(d["mean_intensity"], 1),
+                    "Tumour area (px)": int(d["area"]),
+                    "Perimeter (px)": int(d["perimeter"]),
+                    "Compactness (4πA/P²)": fmt(d["compactness"], 3),
+                    "Centroid (row, col)": fmt_centroid(d["centroid_row"], d["centroid_col"]),
+                })
+
+        df = pd.DataFrame(data)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
         st.subheader("GT vs U-Net differences (FP / FN / TP)")
 
         if (mask_gt_img is None) or (mask_auto_img is None) or (mask_semi_img is None):
             st.info("GT + masks are required to compute the difference maps.")
         else:
-            col_auto, col_semi = st.columns(2)
+            col_auto, col_semi, col_text = st.columns([1, 1, 1.2])
+
             with col_auto:
                 st.markdown("**GT vs U-Net**")
-                st.image(build_difference_map(mask_gt_img, mask_auto_img), use_container_width=True)
+                diff_auto = build_difference_map(mask_gt_img, mask_auto_img)
+                st.image(diff_auto, width=380)
+
             with col_semi:
                 st.markdown("**GT vs Semi-automatic**")
-                st.image(build_difference_map(mask_gt_img, mask_semi_img), use_container_width=True)
+                diff_semi = build_difference_map(mask_gt_img, mask_semi_img)
+                st.image(diff_semi, width=380)
+
+            with col_text:
+                st.markdown(
+                    """
+                <strong>Colour legend:</strong>
+                <ul>
+                    <li><span style="color:red; font-weight:600;">Red</span>: False positives</li>
+                    <li><span style="color:blue; font-weight:600;">Blue</span>: False negatives</li>
+                    <li><span style="color:green; font-weight:600;">Green</span>: True positives</li>
+                </ul>
+                """,
+                    unsafe_allow_html=True
+                )
 
 # =========================================
 # SECTION: MODEL COMPARISON
@@ -588,27 +661,34 @@ elif section == "Model comparison":
 
     st.title("Model comparison")
 
-    if not METRICS_NPY_DIR or not MODELS_7_9_10_13:
+    if not MODELS_7_9_10_13:
         st.warning(
-            "Model comparison is disabled because the metrics folder was not found in the repo.\n\n"
-            "Expected a folder named `Metrics/` (or `metrics/`), or alternatively `CODE/`, in the repository root.\n\n"
-            f"Current resolved path: `{METRICS_NPY_DIR}`"
+            "Model comparison is disabled because the `Metrics/` folder was not found in the repo root.\n\n"
+            "Expected: `Metrics/` at the same level as `app.py`."
         )
         st.stop()
 
-    # Validate that at least one expected file exists
-    any_exists = False
-    for m, cfg in MODELS_7_9_10_13.items():
-        if os.path.isfile(cfg["y_true"]) and os.path.isfile(cfg["y_pred"]):
-            any_exists = True
-            break
-    if not any_exists:
-        st.error(
-            "Metrics folder was found, but the expected .npy files were not found.\n\n"
-            "Check filenames in `Metrics/` and ensure they match exactly (case-sensitive on Streamlit Cloud)."
-        )
-        st.write("Metrics folder:", METRICS_NPY_DIR)
-        st.write("Sample files:", sorted(os.listdir(METRICS_NPY_DIR))[:50])
+    # Hard check: at least one model file exists, otherwise show which files are missing
+    missing_report = []
+    any_ok = False
+    for model_name, cfg in MODELS_7_9_10_13.items():
+        ok_true = os.path.isfile(cfg["y_true"])
+        ok_pred = os.path.isfile(cfg["y_pred"])
+        if ok_true and ok_pred:
+            any_ok = True
+        else:
+            missing_report.append(
+                f"- {model_name}: "
+                f"y_true={'OK' if ok_true else 'MISSING'} ({cfg['y_true']}), "
+                f"y_pred={'OK' if ok_pred else 'MISSING'} ({cfg['y_pred']})"
+            )
+
+    if not any_ok:
+        st.error("`Metrics/` exists, but the expected .npy files were not found with the exact filenames.")
+        st.markdown("**Check these paths:**")
+        st.markdown("\n".join(missing_report))
+        st.markdown("---")
+        st.write("Files currently inside Metrics/:", sorted(os.listdir(str(REPO_ROOT / "Metrics")))[:80])
         st.stop()
 
     st.markdown(
@@ -619,10 +699,28 @@ elif section == "Model comparison":
     """
     )
 
+    with st.expander("Model descriptions"):
+        st.markdown(
+            """
+        **Model 7 – U-Net with composite loss and post-processing**  
+        Composite loss (BCE + Dice + Focal), threshold=0.90, post-processing (largest component).
+
+        **Model 9 – Final U-Net (two-phase training with oversampling)**  
+        Two-phase training + oversampling for small tumours, threshold=0.90, post-processing.
+
+        **Model 10 – U-Net with enhanced preprocessing (CLAHE + region-based refinement)**  
+        Adds CLAHE preprocessing and refinement.
+
+        **Model 13 – ResUNet with Focal Tversky loss**  
+        Residual architecture variant with Focal Tversky loss.
+        """
+        )
+
     model_labels = list(MODELS_7_9_10_13.keys())
     selected_model = st.selectbox("Select model:", model_labels)
 
     tab1, tab2, tab3 = st.tabs(["Summary metrics", "Metric distributions", "Ranking table (7 vs 9 vs 10 vs 13)"])
+
     cfg = MODELS_7_9_10_13[selected_model]
 
     Y_val = safe_load_npy(cfg["y_true"])
@@ -651,6 +749,7 @@ elif section == "Model comparison":
                 fig_dice = px.histogram(x=dice_arr, nbins=20, title="Dice distribution")
                 fig_dice.update_layout(xaxis_title="Dice", yaxis_title="Count")
                 st.plotly_chart(fig_dice, use_container_width=True)
+
             with colB:
                 fig_iou = px.histogram(x=iou_arr, nbins=20, title="IoU distribution")
                 fig_iou.update_layout(xaxis_title="IoU", yaxis_title="Count")
@@ -670,7 +769,7 @@ elif section == "Model comparison":
             P_rank = safe_load_npy(cfg_rank["y_pred"])
             d_rank, i_rank = compute_metrics_from_arrays(Y_rank, P_rank)
 
-            if d_rank is None or i_rank is None:
+            if d_rank is None or i_rank is None or len(d_rank) == 0:
                 rows.append({"Model": model_name, "Dice mean": None, "Dice std": None, "IoU mean": None, "IoU std": None, "N slices": None})
                 continue
 
