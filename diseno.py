@@ -715,7 +715,7 @@ elif section == "Patient exploration":
 elif section == "Model comparison":
 
     st.title("Model comparison")
-
+   
     if not MODELS_7_9_10_13:
         st.warning(
             "Model comparison is disabled because the `Metrics/` folder was not found in the repo root.\n\n"
@@ -758,16 +758,21 @@ elif section == "Model comparison":
         st.markdown(
             """
         **Model 7 – U-Net with composite loss and post-processing**  
-        Composite loss (BCE + Dice + Focal), threshold=0.90, post-processing (largest component).
+        This model represents a strong baseline configuration built upon the standard U-Net architecture. Training is performed using a composite loss function that combines Binary Cross-Entropy (BCE),
+        Dice loss and Focal loss, aiming to mitigate class imbalance and improve sensitivity to small tumour regions. A fixed probability threshold (0.90) is applied at inference, followed by post-processing 
+        steps to remove spurious detections and retain the largest connected component.
 
         **Model 9 – Final U-Net (two-phase training with oversampling)**  
-        Two-phase training + oversampling for small tumours, threshold=0.90, post-processing.
+        Model 9 constitutes the final segmentation framework selected in this project. It extends Model 7 by introducing a two-phase training strategy and explicit oversampling of small tumour regions during 
+        optimisation. This design improves both convergence stability and sensitivity to challenging, low-volume lesions, achieving the best trade-off between accuracy and robustness.
 
         **Model 10 – U-Net with enhanced preprocessing (CLAHE + region-based refinement)**  
-        Adds CLAHE preprocessing and refinement.
+        This model builds upon the Model 9 pipeline by incorporating contrast-limited adaptive histogram equalisation (CLAHE) during preprocessing and region-based morphological refinement to improve boundary
+        coherence. Performance gains are moderate and dataset-dependent.
 
         **Model 13 – ResUNet with Focal Tversky loss**  
-        Residual architecture variant with Focal Tversky loss.
+        This model explores a more complex architectural variant by introducing residual connections (ResUNet) and a Focal Tversky loss. Although these changes improve feature representation, they do not 
+        consistently outperform the final U-Net configuration on this dataset.
         """
         )
 
@@ -784,6 +789,13 @@ elif section == "Model comparison":
     dice_arr, iou_arr = compute_metrics_from_arrays(Y_val, preds_val)
 
     with tab1:
+        st.markdown("""
+        **What you will see:** Mean and standard deviation of Dice and IoU across all validation slices for the selected model.
+        
+        - **Dice** quantifies overlap between prediction and ground truth (higher is better).
+        - **IoU** (Jaccard) is a stricter overlap measure that penalises boundary mismatches more strongly.
+        - The **standard deviation** provides a proxy for robustness: lower variability indicates more consistent performance.
+        """)
         st.subheader("Global performance summary")
         if dice_arr is None or iou_arr is None:
             st.error("Metrics could not be loaded/computed. Verify the .npy files in Metrics/.")
@@ -793,6 +805,7 @@ elif section == "Model comparison":
             c1.metric("Dice (mean ± std)", f"{float(np.mean(dice_arr)):.3f} ± {float(np.std(dice_arr)):.3f}")
             c2.metric("IoU  (mean ± std)", f"{float(np.mean(iou_arr)):.3f} ± {float(np.std(iou_arr)):.3f}")
             c3.metric("Evaluated slices", f"{int(len(dice_arr))}")
+            st.caption("Metrics are computed slice-wise on the validation set, using the post-processed binary predictions.")
 
     with tab2:
         st.subheader("Metric distributions")
