@@ -790,7 +790,7 @@ elif section == "Model comparison":
 
     with tab1:
         st.markdown("""
-        **What you will see:** Mean and standard deviation of Dice and IoU across all validation slices for the selected model.
+        **What you see:** Mean and standard deviation of Dice and IoU across all validation slices for the selected model.
         
         - **Dice** quantifies overlap between prediction and ground truth (higher is better).
         - **IoU** (Jaccard) is a stricter overlap measure that penalises boundary mismatches more strongly.
@@ -808,6 +808,20 @@ elif section == "Model comparison":
             st.caption("Metrics are computed slice-wise on the validation set, using the post-processed binary predictions.")
 
     with tab2:
+        st.markdown("""
+        **Why distributions matter:**  
+        While mean performance metrics (e.g., Dice or IoU) provide a compact summary, they can mask important
+        slice-level behaviour. Two models may achieve similar average scores yet differ substantially in
+        terms of reliability and clinical usability.
+        
+        Distribution-based analyses help to:
+        - **Identify outliers and failure cases**, where the model completely misses the tumour or produces severe over-segmentation.
+        - **Detect performance skew**, revealing whether acceptable mean scores arise from a small number of very accurate predictions compensating for many low-quality segmentations.
+        - **Assess robustness and stability**, as tighter distributions and fewer extreme values indicate more consistent behaviour across heterogeneous tumour appearances and sizes.
+        - **Evaluate sensitivity to difficult cases**, such as small lesions or low-contrast slices, which often manifest as a long tail towards lower Dice/IoU values.
+        
+        Slice-wise trends further highlight systematic degradation patterns, such as progressive performance drops across neighbouring slices, which may indicate limitations in spatial context modelling.
+        """)
         st.subheader("Metric distributions")
         if dice_arr is None or iou_arr is None:
             st.warning("No metric arrays available for the selected model.")
@@ -827,8 +841,18 @@ elif section == "Model comparison":
             fig_line = px.line(x=np.arange(len(dice_arr)), y=dice_arr, title="Dice per slice")
             fig_line.update_layout(xaxis_title="Slice index", yaxis_title="Dice")
             st.plotly_chart(fig_line, use_container_width=True)
+            st.caption(
+            "A stable model typically shows fewer extreme drops and a tighter distribution around a high Dice/IoU range."
+            )
 
     with tab3:
+        st.subheader("Model ranking (Models 7, 9, 10 and 13)")
+        st.markdown("""
+        The table below summarises the global performance of the four shortlisted models using the same validation set.
+        Models are ranked by **mean Dice** to support model selection. In practice, the final choice should consider both:
+        - **accuracy** (higher mean Dice/IoU), and
+        - **robustness** (lower standard deviation).
+        """)
         st.subheader("Model ranking (Models 7, 9, 10 and 13)")
 
         rows = []
@@ -856,3 +880,8 @@ elif section == "Model comparison":
         if df_rank["Dice mean"].notna().sum() >= 1:
             best_model = df_rank.iloc[0]["Model"]
             st.success(f"Best model based on mean Dice: **{best_model}**")
+            st.markdown("""
+            **Interpretation:** The top-ranked configuration is selected as the final model because it provides the best balance
+            between overlap accuracy (Dice/IoU) and stability across slices. This supports reliable tumour delineation under
+            heterogeneous appearance and size variability.
+            """)
