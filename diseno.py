@@ -107,7 +107,12 @@ def ensure_unzipped(folder_key: str) -> Path:
 
     return target_dir
 
-
+st.sidebar.markdown("### DEBUG (paths)")
+st.sidebar.write("BASE_ORIGINAL =", BASE_ORIGINAL)
+st.sidebar.write("Exists? ", os.path.isdir(BASE_ORIGINAL))
+if os.path.isdir(BASE_ORIGINAL):
+    st.sidebar.write("Sample files:", sorted(os.listdir(BASE_ORIGINAL))[:10])
+    
 # Extracted folders (as strings for os.path.* compatibility)
 BASE_ORIGINAL = str(ensure_unzipped("ORIGINAL") / "ORIGINAL")
 BASE_MANUAL     = str(ensure_unzipped("GT_RAS_PNG_RECORTE") / "GT_RAS_PNG_RECORTE")
@@ -115,11 +120,7 @@ BASE_SEMI       = str(ensure_unzipped("MEJOR SEMIAUTOMATICO") / "MEJOR SEMIAUTOM
 BASE_AUTO_MASKS = str(ensure_unzipped("PRUEBAAUTO - ROIM") / "PRUEBAAUTO - ROIM")
 ERRORMAPS_DIR   = str(ensure_unzipped("FIGS_ERRORMAPS") / "FIGS_ERRORMAPS")
 
-st.sidebar.markdown("### DEBUG (paths)")
-st.sidebar.write("BASE_ORIGINAL =", BASE_ORIGINAL)
-st.sidebar.write("Exists? ", os.path.isdir(BASE_ORIGINAL))
-if os.path.isdir(BASE_ORIGINAL):
-    st.sidebar.write("Sample files:", sorted(os.listdir(BASE_ORIGINAL))[:10])
+
 
 
 # Optional folders (only if you add zips)
