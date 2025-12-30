@@ -65,27 +65,7 @@ def resolve_optional_dir(fallback_rel: str):
     return str(p) if p.is_dir() else None
 
 # Automatic models live here
-CODE_DIR = resolve_optional_dir("automaticSegmentation")
-
-# Metrics (only if you add them later)
-METRICS_DIR = resolve_optional_dir("lung_app_metrics")
-
-MODEL_METRICS_FILES = {}
-if METRICS_DIR:
-    MODEL_METRICS_FILES = {
-        "Model 1 – training without augmentation": {
-            "dice": os.path.join(METRICS_DIR, "dice_model1.npy"),
-            "iou":  os.path.join(METRICS_DIR, "iou_model1.npy"),
-        },
-        "Model 2 – training with augmentation": {
-            "dice": os.path.join(METRICS_DIR, "dice_model2.npy"),
-            "iou":  os.path.join(METRICS_DIR, "iou_model2.npy"),
-        },
-        "Model 3 – BCE + Dice loss": {
-            "dice": os.path.join(METRICS_DIR, "dice_model3.npy"),
-            "iou":  os.path.join(METRICS_DIR, "iou_model3.npy"),
-        },
-    }
+CODE_DIR = resolve_optional_dir("Metrics")
 
 MODELS_7_9_10_13 = {}
 if CODE_DIR:
