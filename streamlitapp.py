@@ -16,10 +16,10 @@ from io import BytesIO
 
 REPO_ROOT = Path(__file__).resolve().parent
 
-# Folder in your repo that contains the datasets (NOT ZIP anymore)
+# Folder in your repo that contains the datasets 
 PHOTOWEB_DIR = REPO_ROOT / "Photoweb"
 
-# Data folders inside Photoweb (direct PNGs inside)
+# Data folders inside Photoweb 
 BASE_ORIGINAL_DIR = PHOTOWEB_DIR / "ORIGINAL"
 BASE_MANUAL_DIR   = PHOTOWEB_DIR / "GT_RAS_PNG_RECORTE"
 BASE_SEMI_DIR     = PHOTOWEB_DIR / "MEJOR SEMIAUTOMATICO"
@@ -36,13 +36,12 @@ BASE_AUTO_MASKS = str(BASE_AUTO_MASKS_DIR)
 ERRORMAPS_DIR   = str(ERRORMAPS_DIR_PATH)
 Index   = str(Index)
 
-# Optional folders (only if you add them)
+
 BASE_AUTO_PROBS = None
 BASE_AUTO_ROI = None
 
 VALID_EXTS = (".png", ".jpg", ".jpeg")
 
-# Optional: standalone image for landing page
 SCENE_IMG_PATH = PHOTOWEB_DIR / "2025-10-08-Scene.png"
 SCENE_IMG_PATH = str(SCENE_IMG_PATH) if SCENE_IMG_PATH.is_file() else None
 
@@ -62,7 +61,6 @@ SCC_PATIENTS = [f"SCC_P{i}" for i in range(1, 6)]
 # METRICS / MODEL COMPARISON (DIRECT)
 # =========================================
 
-# Metrics folder is exactly "Metrics" and is in repo root (same level as app.py)
 CODE_DIR = str(REPO_ROOT / "Metrics")
 if not os.path.isdir(CODE_DIR):
     CODE_DIR = None
