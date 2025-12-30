@@ -512,7 +512,7 @@ elif section == "Patient exploration":
     show_auto = st.sidebar.checkbox("Show automatic segmentation (U-Net)", True)
 
     st.write(f"Selected case: **{patient}** – {tumour_type}")
-  st.markdown(
+    st.markdown(
       """
     <div style="
         background-color: #f7f9fc;
