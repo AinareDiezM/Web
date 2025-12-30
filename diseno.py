@@ -54,24 +54,35 @@ def _looks_like_image_folder(p: Path) -> bool:
 
 
 def ensure_unzipped(folder_key: str) -> Path:
-    """
-    Ensure zip for folder_key is extracted into EXTRACT_DIR/folder_key.
-    Returns the most likely folder containing the actual files (handles nested root folders).
-    """
     target_dir = EXTRACT_DIR / folder_key
 
-    # If already extracted, try to pick best folder
+    # If already extracted
     if target_dir.exists() and any(target_dir.iterdir()):
-        # If target_dir directly has images/files, return it
-        if _looks_like_image_folder(target_dir) or any(target_dir.glob("*.npy")):
-            return target_dir
-
-        # If there is exactly one nested folder (common zip layout), return that
-        subdirs = [p for p in target_dir.iterdir() if p.is_dir()]
+        subdirs = [p for p in target_dir.iterdir() if p.is_dir() and p.name != "__MACOSX"]
         if len(subdirs) == 1:
             return subdirs[0]
-
         return target_dir
+
+    zip_name = ZIP_MAP.get(folder_key)
+    if zip_name is None:
+        raise FileNotFoundError(f"No ZIP mapping found for key: {folder_key}")
+
+    zip_path = PHOTOWEB_DIR / zip_name
+    if not zip_path.is_file():
+        raise FileNotFoundError(f"ZIP not found in repo: {zip_path}")
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extractall(target_dir)
+
+    # Return inner folder if it exists (common zip layout)
+    subdirs = [p for p in target_dir.iterdir() if p.is_dir() and p.name != "__MACOSX"]
+    if len(subdirs) == 1:
+        return subdirs[0]
+
+    return target_dir
+
 
     zip_name = ZIP_MAP.get(folder_key)
     if zip_name is None:
@@ -98,11 +109,11 @@ def ensure_unzipped(folder_key: str) -> Path:
 
 
 # Extracted folders (as strings for os.path.* compatibility)
-BASE_ORIGINAL = str(ensure_unzipped("ORIGINAL") / "ORIGINAL")
-BASE_MANUAL     = str(ensure_unzipped("GT_RAS_PNG_RECORTE") / "GT_RAS_PNG_RECORTE")
-BASE_SEMI       = str(ensure_unzipped("MEJOR SEMIAUTOMATICO") / "MEJOR SEMIAUTOMATICO")
-BASE_AUTO_MASKS = str(ensure_unzipped("PRUEBAAUTO - ROIM") / "PRUEBAAUTO - ROIM")
-ERRORMAPS_DIR   = str(ensure_unzipped("FIGS_ERRORMAPS") / "FIGS_ERRORMAPS")
+BASE_ORIGINAL = str(ensure_unzipped("ORIGINAL"))
+BASE_MANUAL     = str(ensure_unzipped("GT_RAS_PNG_RECORTE") )
+BASE_SEMI       = str(ensure_unzipped("MEJOR SEMIAUTOMATICO") )
+BASE_AUTO_MASKS = str(ensure_unzipped("PRUEBAAUTO - ROIM") )
+ERRORMAPS_DIR   = str(ensure_unzipped("FIGS_ERRORMAPS") )
 
 # Optional folders (only if you add zips)
 BASE_AUTO_PROBS = None
