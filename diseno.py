@@ -498,6 +498,7 @@ elif section == "Patient exploration":
         unsafe_allow_html=True
     )
 
+    
     # --- Sidebar: patient selection (ESTO TE FALTABA) ---
     st.sidebar.subheader("Patient selection")
 
