@@ -853,7 +853,7 @@ elif section == "Model comparison":
         - **accuracy** (higher mean Dice/IoU), and
         - **robustness** (lower standard deviation).
         """)
-        st.subheader("Model ranking (Models 7, 9, 10 and 13)")
+        
 
         rows = []
         for model_name, cfg_rank in MODELS_7_9_10_13.items():
