@@ -477,39 +477,71 @@ if section == "Project overview":
 # =========================================
 elif section == "Patient exploration":
 
-        st.sidebar.markdown("---")
-        st.sidebar.subheader("Segmentation layers")
-    
-        show_gt = st.sidebar.checkbox("Show manual segmentation (ground truth)", True)
-        show_semi = st.sidebar.checkbox("Show semi-automatic segmentation", True)
-        show_auto = st.sidebar.checkbox("Show automatic segmentation (U-Net)", True)
-    
-        st.write(f"Selected case: **{patient}** – {tumour_type}")
-    
-        st.markdown(
-            """
-            <div style="
-                background-color: #f7f9fc;
-                border-left: 4px solid #003865;
-                padding: 0.8rem 1rem;
-                margin-top: 0.6rem;
-                margin-bottom: 1.2rem;
-                border-radius: 6px;
-                color: #3a4a58;
-                font-size: 15px;
-            ">
-            <strong>Section overview</strong><br>
-            In this section, the selected patient case can be explored in detail at slice level.
-            The user can visualise the original MRI image alongside manual, semi-automatic, and
-            automatic tumour segmentations.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-        slice_files = list_slices_for_patient(patient)
+    st.markdown(
+        """
+        <h2 style="margin-bottom:0.2rem;">Patient exploration</h2>
+        <p style="color:#4a4a4a;margin-top:0.2rem;margin-bottom:1.2rem;"></p>
+        """,
+        unsafe_allow_html=True
+    )
 
+    st.markdown(
+        """
+        <div style="
+            width: 100%;
+            height: 8px;
+            margin-top: -10px;
+            margin-bottom: 18px;
+            background-color: #e9f2ff;
+            border-radius: 6px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
+    # --- Sidebar: patient selection (ESTO TE FALTABA) ---
+    st.sidebar.subheader("Patient selection")
+
+    tumour_type = st.sidebar.selectbox(
+        "Tumour type:",
+        ["Adenocarcinoma (ADC)", "Squamous cell carcinoma (SCC)"]
+    )
+    patient = st.sidebar.selectbox(
+        "Select patient:",
+        ADC_PATIENTS if "Adenocarcinoma" in tumour_type else SCC_PATIENTS
+    )
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Segmentation layers")
+
+    show_gt = st.sidebar.checkbox("Show manual segmentation (ground truth)", True)
+    show_semi = st.sidebar.checkbox("Show semi-automatic segmentation", True)
+    show_auto = st.sidebar.checkbox("Show automatic segmentation (U-Net)", True)
+
+    st.write(f"Selected case: **{patient}** – {tumour_type}")
+
+    st.markdown(
+        """
+        <div style="
+            background-color: #f7f9fc;
+            border-left: 4px solid #003865;
+            padding: 0.8rem 1rem;
+            margin-top: 0.6rem;
+            margin-bottom: 1.2rem;
+            border-radius: 6px;
+            color: #3a4a58;
+            font-size: 15px;
+        ">
+        <strong>Section overview</strong><br>
+        In this section, the selected patient case can be explored in detail at slice level.
+        The user can visualise the original MRI image alongside manual, semi-automatic, and
+        automatic tumour segmentations.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    slice_files = list_slices_for_patient(patient)
 
     if not slice_files:
         st.warning(
@@ -547,7 +579,10 @@ elif section == "Patient exploration":
         col_gt, col_semi, col_auto = st.columns(3)
 
         with col_gt:
-            st.markdown("<div style='text-align:center; font-weight:600; margin-bottom:0.5rem;'>Manual (ground truth)</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div style='text-align:center; font-weight:600; margin-bottom:0.5rem;'>Manual (ground truth)</div>",
+                unsafe_allow_html=True
+            )
             if show_gt and mask_gt_img is not None:
                 st.image(mask_gt_img, use_container_width=True, clamp=True)
             elif show_gt:
@@ -556,7 +591,10 @@ elif section == "Patient exploration":
                 st.info("Layer disabled.")
 
         with col_semi:
-            st.markdown("<div style='text-align:center; font-weight:600; margin-bottom:0.5rem;'>Semi-automatic</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div style='text-align:center; font-weight:600; margin-bottom:0.5rem;'>Semi-automatic</div>",
+                unsafe_allow_html=True
+            )
             if show_semi and mask_semi_img is not None:
                 st.image(mask_semi_img, use_container_width=True, clamp=True)
             elif show_semi:
@@ -565,7 +603,10 @@ elif section == "Patient exploration":
                 st.info("Layer disabled.")
 
         with col_auto:
-            st.markdown("<div style='text-align:center; font-weight:600; margin-bottom:0.5rem;'>Automatic (U-Net)</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div style='text-align:center; font-weight:600; margin-bottom:0.5rem;'>Automatic (U-Net)</div>",
+                unsafe_allow_html=True
+            )
             if show_auto and mask_auto_img is not None:
                 st.image(mask_auto_img, use_container_width=True, clamp=True)
             elif show_auto:
@@ -635,13 +676,13 @@ elif section == "Patient exploration":
             with col_text:
                 st.markdown(
                     """
-                <strong>Colour legend:</strong>
-                <ul>
-                    <li><span style="color:red; font-weight:600;">Red</span>: False positives</li>
-                    <li><span style="color:blue; font-weight:600;">Blue</span>: False negatives</li>
-                    <li><span style="color:green; font-weight:600;">Green</span>: True positives</li>
-                </ul>
-                """,
+                    <strong>Colour legend:</strong>
+                    <ul>
+                        <li><span style="color:red; font-weight:600;">Red</span>: False positives</li>
+                        <li><span style="color:blue; font-weight:600;">Blue</span>: False negatives</li>
+                        <li><span style="color:green; font-weight:600;">Green</span>: True positives</li>
+                    </ul>
+                    """,
                     unsafe_allow_html=True
                 )
 
