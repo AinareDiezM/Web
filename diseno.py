@@ -475,7 +475,7 @@ if section == "Project overview":
 # =========================================
 # SECTION: PATIENT EXPLORATION
 # =========================================
- elif section == "Patient exploration":
+elif section == "Patient exploration":
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Segmentation layers")
