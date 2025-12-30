@@ -655,6 +655,15 @@ elif section == "Patient exploration":
                 })
 
         df = pd.DataFrame(data)
+        st.markdown("""
+        **Radiomics descriptors (slice-level):**
+        
+        - **Mean intensity (a.u.)**: Average MRI signal intensity within the segmented tumour region.  
+        - **Tumour area (px)**: Number of pixels classified as tumour in the selected slice.  
+        - **Perimeter (px)**: Approximate length of the tumour boundary, estimated using 4-connectivity.  
+        - **Compactness (4πA/P²)**: Shape descriptor quantifying how close the tumour is to a circular geometry (lower values indicate more irregular shapes).  
+        - **Centroid (row, col)**: Geometric centre of the segmented tumour region in image coordinates.
+        """)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
         st.markdown("---")
