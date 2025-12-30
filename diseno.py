@@ -534,7 +534,8 @@ elif section == "Patient exploration":
         ">
         <strong>Section overview</strong><br>
         In this section, the selected patient case can be explored in detail at slice level.
-        The user can visualise the original MRI image alongside manual, semi-automatic, and automatic tumour segmentations, inspect simple radiomic descriptors computed per method,
+        The user can visualise the original MRI image alongside manual, semi-automatic, and automatic tumour segmentations,
+        inspect simple radiomic descriptors computed per method,
         and analyse segmentation differences. This view is intended to
         support qualitative interpretation of tumour morphology and segmentation behaviour on an individual-case basis.
         </div>
