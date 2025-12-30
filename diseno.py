@@ -881,7 +881,7 @@ elif section == "Model comparison":
             best_model = df_rank.iloc[0]["Model"]
             st.success(f"Best model based on mean Dice: **{best_model}**")
             st.markdown("""
-            **Interpretation:** The top-ranked configuration is selected as the final model because it provides the best balance
+            **Interpretation:** Model 9 is selected as the final model because it provides the best balance
             between overlap accuracy (Dice/IoU) and stability across slices. This supports reliable tumour delineation under
             heterogeneous appearance and size variability.
             """)
