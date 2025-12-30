@@ -19,6 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 
 # Folder in your repo that contains the datasets (NOT ZIP anymore)
 PHOTOWEB_DIR = REPO_ROOT / "Photoweb"
+CODE_DIR = resolve_optional_dir("Metrics")
 
 # Data folders inside Photoweb (direct PNGs inside)
 BASE_ORIGINAL_DIR = PHOTOWEB_DIR / "ORIGINAL"
@@ -65,7 +66,7 @@ def resolve_optional_dir(fallback_rel: str):
     return str(p) if p.is_dir() else None
 
 # Automatic models live here
-CODE_DIR = resolve_optional_dir("Metrics")
+
 
 MODELS_7_9_10_13 = {}
 if CODE_DIR:
