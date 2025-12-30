@@ -64,8 +64,11 @@ def resolve_optional_dir(fallback_rel: str):
     p = REPO_ROOT / fallback_rel
     return str(p) if p.is_dir() else None
 
+# Automatic models live here
+CODE_DIR = resolve_optional_dir("automaticSegmentation")
+
+# Metrics (only if you add them later)
 METRICS_DIR = resolve_optional_dir("lung_app_metrics")
-CODE_DIR = resolve_optional_dir("CODE")
 
 MODEL_METRICS_FILES = {}
 if METRICS_DIR:
