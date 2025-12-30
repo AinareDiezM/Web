@@ -477,33 +477,7 @@ if section == "Project overview":
 # =========================================
 elif section == "Patient exploration":
 
-    st.markdown(
-        """
-        <h2 style="margin-bottom:0.2rem;">Patient exploration</h2>
-        <p style="color:#4a4a4a;margin-top:0.2rem;margin-bottom:1.2rem;"></p>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <div style="
-            width: 100%;
-            height: 8px;
-            margin-top: -10px;
-            margin-bottom: 18px;
-            background-color: #e9f2ff;
-            border-radius: 6px;">
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.sidebar.subheader("Patient selection")
-
-    tumour_type = st.sidebar.selectbox("Tumour type:", ["Adenocarcinoma (ADC)", "Squamous cell carcinoma (SCC)"])
-    patient = st.sidebar.selectbox("Select patient:", ADC_PATIENTS if "Adenocarcinoma" in tumour_type else SCC_PATIENTS)
-        st.sidebar.markdown("---")
+    st.sidebar.markdown("---")
     st.sidebar.subheader("Segmentation layers")
 
     show_gt = st.sidebar.checkbox("Show manual segmentation (ground truth)", True)
@@ -527,10 +501,7 @@ elif section == "Patient exploration":
         <strong>Section overview</strong><br>
         In this section, the selected patient case can be explored in detail at slice level.
         The user can visualise the original MRI image alongside manual, semi-automatic, and
-        automatic tumour segmentations, inspect simple radiomic descriptors computed per method,
-        and analyse segmentation differences. This view is intended to
-        support qualitative interpretation of tumour morphology and segmentation behaviour on an
-        individual-case basis.
+        automatic tumour segmentations.
         </div>
         """,
         unsafe_allow_html=True
